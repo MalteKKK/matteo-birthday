@@ -124,17 +124,17 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 
 <!-- INTRO -->
 <div class="screen active" id="intro">
-  <canvas id="avatarIntro" width="140" height="200" style="width:140px;height:200px"></canvas>
+  <canvas id="danceCanvas" width="640" height="400" style="width:320px;height:200px;border-radius:16px"></canvas>
   <h1 class="intro-title">Happy Birthday<br>Matteo!</h1>
   <div class="intro-age">13</div>
   <p class="intro-sub">Wir haben was Fettes vorbereitet! Aber du musst dir den Zugang erst freispielen... 🎮</p>
   <p style="font-size:12px;color:var(--neon-purple);margin-top:4px">+1000 Aura zum Geburtstag 😎</p>
-  <button class="btn btn-big btn-primary" onclick="goToHub()">Mission starten 🚀</button>
+  <button class="btn btn-big btn-primary" onclick="stopDance();goToHub()">Mission starten 🚀</button>
 </div>
 
 <!-- HUB -->
 <div class="screen screen-scroll" id="hub">
-  <canvas id="avatarHub" width="90" height="126" style="width:90px;height:126px"></canvas>
+  <canvas id="avatarHub" width="180" height="252" style="width:90px;height:126px"></canvas>
   <div class="hub-title">Matteo Challenge</div>
   <div style="color:#555;font-size:11px">Schliesse alle Challenges ab!</div>
   <div class="hub-aura" id="auraDisp">Aura: 1000</div>
@@ -294,42 +294,234 @@ loadState();
 // STARS
 (function(){var e=document.getElementById("stars");for(var i=0;i<70;i++){var s=document.createElement("div");s.className="star";var z=(Math.random()*2.5+1)+"px";s.style.cssText="left:"+Math.random()*100+"%;top:"+Math.random()*100+"%;width:"+z+";height:"+z+";animation-delay:"+Math.random()*3+"s";e.appendChild(s)}})();
 
-// AVATAR
-function drawAv(id,w,h){
-  var c=document.getElementById(id);if(!c)return;
-  var x=c.getContext("2d"),s=w/140;
-  x.clearRect(0,0,c.width,c.height);x.save();x.scale(s,s);
-  // Baggy pants
-  x.fillStyle="#2a3a6a";x.fillRect(42,115,22,55);x.fillRect(72,115,22,55);x.fillRect(42,110,52,15);
+// AVATAR - High quality character drawing
+function roundRect(x,cx,cy,w,h,r){x.beginPath();x.moveTo(cx+r,cy);x.lineTo(cx+w-r,cy);x.quadraticCurveTo(cx+w,cy,cx+w,cy+r);x.lineTo(cx+w,cy+h-r);x.quadraticCurveTo(cx+w,cy+h,cx+w-r,cy+h);x.lineTo(cx+r,cy+h);x.quadraticCurveTo(cx,cy+h,cx,cy+h-r);x.lineTo(cx,cy+r);x.quadraticCurveTo(cx,cy,cx+r,cy);x.closePath();x.fill()}
+
+function drawPerson(x,opts){
+  // opts: {scale, headY, bodyY, armL, armR, legSpread, hairColor, hairLong, skinTone, shirtColor, pantsColor, glasses, smile}
+  var o=opts||{};
+  x.save();
+  x.lineCap="round";x.lineJoin="round";
+  var sc=o.scale||1;
+  x.scale(sc,sc);
+
+  var skin=o.skinTone||"#f5d0a0";
+  var hair=o.hairColor||"#f0d060";
+  var hairDk=o.hairDark||"#e0c040";
+  var shirt=o.shirtColor||"#1a1a2e";
+  var pants=o.pantsColor||"#2a3a6a";
+  var hy=o.headY||0;var by=o.bodyY||0;
+  var al=o.armL||0;var ar=o.armR||0;
+  var ls=o.legSpread||0;
+
+  // Shadow
+  x.fillStyle="rgba(0,0,0,.12)";
+  x.beginPath();x.ellipse(68,178+by,30+ls*2,6,0,0,Math.PI*2);x.fill();
+
+  // Legs/pants
+  x.fillStyle=pants;
+  roundRect(x,46-ls,118+by,20,52,5);roundRect(x,70+ls,118+by,20,52,5);
+  roundRect(x,42,112+by,52,14,4);
+
   // Shoes
-  x.fillStyle="#333";x.fillRect(38,165,28,12);x.fillRect(70,165,28,12);
-  // Body hoodie
-  x.fillStyle="#1a1a2e";x.fillRect(38,65,60,50);
+  x.fillStyle="#333";
+  roundRect(x,42-ls,166+by,26,12,5);roundRect(x,68+ls,166+by,26,12,5);
+
+  // Body
+  x.fillStyle=shirt;
+  roundRect(x,38,68+by,60,48,8);
+  // Hood detail
+  x.fillStyle="rgba(255,255,255,.04)";roundRect(x,52,70+by,32,10,4);
+
   // Arms
-  x.fillRect(24,70,18,40);x.fillRect(96,70,18,40);
-  x.fillStyle="#252540";x.fillRect(58,68,20,8);
-  // Left hand Oreo
-  x.fillStyle="#1a1a1a";x.beginPath();x.arc(33,115,10,0,Math.PI*2);x.fill();
-  x.fillStyle="#f0f0f0";x.beginPath();x.arc(33,115,6,0,Math.PI*2);x.fill();
-  x.fillStyle="#2a2a2a";x.beginPath();x.arc(33,115,4,0,Math.PI*2);x.fill();
-  // Right hand Fanta
-  x.fillStyle="#ff6b00";x.fillRect(99,100,14,22);
-  x.fillStyle="#c85000";x.fillRect(99,100,14,4);x.fillRect(99,118,14,4);
-  x.fillStyle="#fff";x.font="bold 7px sans-serif";x.textAlign="center";x.fillText("F",106,114);
+  x.save();
+  x.fillStyle=shirt;
+  // Left arm
+  x.save();x.translate(38,76+by);x.rotate(al);
+  roundRect(x,-8,-4,16,42,6);x.restore();
+  // Right arm
+  x.save();x.translate(98,76+by);x.rotate(ar);
+  roundRect(x,-8,-4,16,42,6);x.restore();
+  x.restore();
+
+  // Hands (skin)
+  x.fillStyle=skin;
+  var lhx=30+Math.sin(al)*38,lhy=112+by+Math.cos(al)*4;
+  var rhx=106+Math.sin(ar)*38,rhy=112+by+Math.cos(ar)*4;
+  x.beginPath();x.arc(lhx,lhy,6,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(rhx,rhy,6,0,Math.PI*2);x.fill();
+
   // Head
-  x.fillStyle="#f5d0a0";x.beginPath();x.arc(68,45,26,0,Math.PI*2);x.fill();
-  // Blonde hair
-  x.fillStyle="#f0d060";x.beginPath();x.arc(68,38,26,Math.PI,0);x.fill();x.fillRect(44,32,48,14);
-  x.fillStyle="#e8c840";x.fillRect(46,26,8,12);x.fillRect(56,24,10,10);x.fillRect(70,23,10,11);x.fillRect(82,26,8,12);
-  // Sunglasses
-  x.fillStyle="rgba(0,0,0,0.75)";x.fillRect(50,42,14,9);x.fillRect(72,42,14,9);
-  x.strokeStyle="#222";x.lineWidth=1.5;x.strokeRect(50,42,14,9);x.strokeRect(72,42,14,9);
-  x.beginPath();x.moveTo(64,46);x.lineTo(72,46);x.stroke();
+  x.fillStyle=skin;
+  x.beginPath();x.arc(68,45+hy,26,0,Math.PI*2);x.fill();
+  // Ears
+  x.beginPath();x.arc(42,48+hy,6,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(94,48+hy,6,0,Math.PI*2);x.fill();
+
+  // Hair
+  x.fillStyle=hair;
+  x.beginPath();x.arc(68,38+hy,27,Math.PI,0);x.fill();
+  roundRect(x,42,28+hy,52,14,4);
+  // Hair strands
+  x.fillStyle=hairDk;
+  roundRect(x,44,22+hy,10,14,3);roundRect(x,56,20+hy,12,12,3);
+  roundRect(x,70,19+hy,12,13,3);roundRect(x,82,22+hy,10,14,3);
+
+  // Long hair for Linda
+  if(o.hairLong){
+    x.fillStyle=hair;
+    roundRect(x,38,38+hy,10,50,4);roundRect(x,88,38+hy,10,50,4);
+    // Wavy
+    x.fillStyle=hairDk;
+    roundRect(x,36,55+hy,8,28,3);roundRect(x,92,55+hy,8,28,3);
+  }
+
+  // Eyes or Glasses
+  if(o.glasses){
+    x.fillStyle="rgba(20,20,40,0.8)";
+    roundRect(x,50,41+hy,14,10,3);roundRect(x,72,41+hy,14,10,3);
+    x.strokeStyle="#333";x.lineWidth=1.5;
+    x.beginPath();x.moveTo(64,46+hy);x.lineTo(72,46+hy);x.stroke();
+    // Lens shine
+    x.fillStyle="rgba(255,255,255,.15)";
+    x.fillRect(52,42+hy,4,3);x.fillRect(74,42+hy,4,3);
+  }else{
+    // Normal eyes
+    x.fillStyle="#333";
+    x.beginPath();x.arc(57,46+hy,3,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(79,46+hy,3,0,Math.PI*2);x.fill();
+    // Pupils
+    x.fillStyle="#111";
+    x.beginPath();x.arc(57,46+hy,1.5,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(79,46+hy,1.5,0,Math.PI*2);x.fill();
+    // Eye whites
+    x.fillStyle="rgba(255,255,255,.6)";
+    x.beginPath();x.arc(55.5,44.5+hy,1,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(77.5,44.5+hy,1,0,Math.PI*2);x.fill();
+  }
+
   // Smile
-  x.strokeStyle="#333";x.lineWidth=2;x.beginPath();x.arc(68,54,8,0.15*Math.PI,0.85*Math.PI);x.stroke();
+  x.strokeStyle="#c08060";x.lineWidth=2;
+  x.beginPath();x.arc(68,52+hy,o.smile||8,0.15*Math.PI,0.85*Math.PI);x.stroke();
+  // Blush
+  x.fillStyle="rgba(255,150,150,.15)";
+  x.beginPath();x.arc(50,54+hy,6,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(86,54+hy,6,0,Math.PI*2);x.fill();
+
   x.restore();
 }
-setTimeout(function(){drawAv("avatarIntro",140,200);drawAv("avatarHub",90,126)},200);
+
+// Static avatar for hub
+function drawAv(id){
+  var c=document.getElementById(id);if(!c)return;
+  var x=c.getContext("2d");
+  x.clearRect(0,0,c.width,c.height);
+  x.save();
+  var s=c.width/140;
+  x.scale(s,s);
+  drawPerson(x,{scale:1,glasses:true,hairColor:"#f0d060",hairDark:"#e0c040",shirtColor:"#1a1a2e",pantsColor:"#2a3a6a"});
+  x.restore();
+}
+
+// Dance animation
+var danceAnim=null,danceFrame=0;
+var DC=document.getElementById("danceCanvas"),DX=DC?DC.getContext("2d"):null;
+
+function danceLoop(){
+  if(!DC)return;
+  danceFrame++;
+  var t=danceFrame*0.06;
+  DX.clearRect(0,0,640,400);
+
+  // Background glow
+  var grd=DX.createRadialGradient(320,200,20,320,200,300);
+  grd.addColorStop(0,"rgba(191,64,255,.06)");grd.addColorStop(1,"rgba(0,0,0,0)");
+  DX.fillStyle=grd;DX.fillRect(0,0,640,400);
+
+  // Disco lights
+  for(var li=0;li<5;li++){
+    DX.save();DX.globalAlpha=.04+Math.sin(t*2+li)*.02;
+    var lc=["#ff2d95","#00d4ff","#39ff14","#fff700","#bf40ff"][li];
+    DX.fillStyle=lc;
+    DX.beginPath();DX.arc(128*li+64,30,60+Math.sin(t*3+li)*20,0,Math.PI*2);DX.fill();
+    DX.restore();
+  }
+
+  // Floor reflection
+  DX.fillStyle="rgba(255,255,255,.02)";
+  DX.fillRect(0,350,640,50);
+
+  // Confetti particles
+  DX.save();
+  for(var ci=0;ci<12;ci++){
+    var cx=((ci*53+danceFrame*0.7)%640);
+    var cy=((ci*37+danceFrame*1.2+Math.sin(ci+t)*30)%380);
+    DX.fillStyle=["#ff2d95","#00d4ff","#39ff14","#fff700","#bf40ff"][ci%5];
+    DX.globalAlpha=.3+Math.sin(ci+t)*.2;
+    DX.save();DX.translate(cx,cy);DX.rotate(danceFrame*0.05+ci);
+    DX.fillRect(-3,-3,6,6);DX.restore();
+  }
+  DX.restore();
+
+  // Dance bounce values
+  var bounce=Math.sin(t*4)*4;
+  var armSwing=Math.sin(t*4)*0.5;
+  var legSwing=Math.sin(t*4)*3;
+
+  // Malte (left, taller) - blonde, glasses
+  DX.save();DX.translate(80,20);DX.scale(1.15,1.15);
+  drawPerson(DX,{
+    scale:1,glasses:true,
+    hairColor:"#f0d060",hairDark:"#dbb830",
+    shirtColor:"#2a2a4e",pantsColor:"#2a3a5a",
+    headY:bounce*0.8,bodyY:bounce*0.5,
+    armL:-armSwing-0.3,armR:armSwing+0.3,
+    legSpread:legSwing
+  });
+  DX.restore();
+
+  // Matteo (center, main character) - blonde, glasses, hoodie
+  DX.save();DX.translate(240,30);
+  drawPerson(DX,{
+    scale:1.05,glasses:true,
+    hairColor:"#f0d060",hairDark:"#e0c040",
+    shirtColor:"#1a1a2e",pantsColor:"#2a3a6a",
+    headY:-bounce,bodyY:-bounce*0.6,
+    armL:armSwing+0.4,armR:-armSwing+0.4,
+    legSpread:-legSwing
+  });
+  DX.restore();
+
+  // Linda (right, same height as Matteo) - brown long hair, no glasses
+  DX.save();DX.translate(400,30);
+  drawPerson(DX,{
+    scale:1.05,glasses:false,
+    hairColor:"#8B5E3C",hairDark:"#704B30",hairLong:true,
+    skinTone:"#f5d0a0",
+    shirtColor:"#5a2a6a",pantsColor:"#3a3a5a",
+    headY:bounce*0.9,bodyY:bounce*0.5,
+    armL:armSwing-0.2,armR:-armSwing-0.2,
+    legSpread:legSwing*0.8,
+    smile:9
+  });
+  DX.restore();
+
+  // "🎂" floating above
+  DX.font="28px serif";DX.textAlign="center";
+  DX.fillText("🎂",320,30+Math.sin(t*2)*8);
+  DX.font="16px serif";
+  DX.fillText("🎵",160+Math.sin(t*3)*20,60+Math.cos(t*2)*10);
+  DX.fillText("🎶",480+Math.cos(t*3)*20,50+Math.sin(t*2.5)*10);
+
+  danceAnim=requestAnimationFrame(danceLoop);
+}
+
+function stopDance(){if(danceAnim){cancelAnimationFrame(danceAnim);danceAnim=null}}
+
+setTimeout(function(){
+  drawAv("avatarHub");
+  if(DC)danceLoop();
+},200);
 
 // NAV
 function showScr(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active")});document.getElementById(id).classList.add("active");document.querySelectorAll(".game-overlay").forEach(function(o){o.classList.remove("active")})}
@@ -437,15 +629,30 @@ function updRunHUD(){
 
 function drawMatteoSmall(x,y,ctx){
   var cx=x,cy=y;
-  if(rBoost>0){ctx.save();ctx.shadowColor="rgba(57,255,20,.6)";ctx.shadowBlur=12}
-  ctx.fillStyle="#2a3a6a";ctx.fillRect(cx+4,cy+18,8,14);ctx.fillRect(cx+12,cy+18,8,14);
-  ctx.fillStyle="#333";ctx.fillRect(cx+2,cy+30,10,4);ctx.fillRect(cx+12,cy+30,10,4);
-  ctx.fillStyle=rBoost>0?"#2a2a4e":"#1a1a2e";ctx.fillRect(cx+2,cy+8,20,12);
-  ctx.fillStyle="#f5d0a0";ctx.beginPath();ctx.arc(cx+12,cy+4,8,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#f0d060";ctx.beginPath();ctx.arc(cx+12,cy+1,8,Math.PI,0);ctx.fill();
-  ctx.fillRect(cx+4,cy-3,16,5);
-  ctx.fillStyle="rgba(0,0,0,.8)";ctx.fillRect(cx+6,cy+2,5,3);ctx.fillRect(cx+13,cy+2,5,3);
-  if(rBoost>0)ctx.restore();
+  ctx.save();
+  if(rBoost>0){ctx.shadowColor="rgba(57,255,20,.6)";ctx.shadowBlur=12}
+  ctx.lineCap="round";
+  // Legs
+  ctx.fillStyle="#2a3a6a";
+  ctx.beginPath();ctx.roundRect(cx+3,cy+18,9,14,2);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx+12,cy+18,9,14,2);ctx.fill();
+  // Shoes
+  ctx.fillStyle="#333";
+  ctx.beginPath();ctx.roundRect(cx+1,cy+30,11,5,2);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx+12,cy+30,11,5,2);ctx.fill();
+  // Body
+  ctx.fillStyle=rBoost>0?"#2a2a4e":"#1a1a2e";
+  ctx.beginPath();ctx.roundRect(cx+1,cy+8,22,12,3);ctx.fill();
+  // Head
+  ctx.fillStyle="#f5d0a0";ctx.beginPath();ctx.arc(cx+12,cy+3,8,0,Math.PI*2);ctx.fill();
+  // Hair
+  ctx.fillStyle="#f0d060";ctx.beginPath();ctx.arc(cx+12,cy,8,Math.PI,0);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx+4,cy-4,16,6,2);ctx.fill();
+  // Glasses
+  ctx.fillStyle="rgba(20,20,40,.8)";
+  ctx.beginPath();ctx.roundRect(cx+5,cy+1,6,4,1);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx+13,cy+1,6,4,1);ctx.fill();
+  ctx.restore();
 }
 
 function runLoop(){
