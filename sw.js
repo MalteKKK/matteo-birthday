@@ -1,4 +1,4 @@
-var CACHE='matteo13-v1';
+var CACHE='matteo13-v2';
 var ASSETS=['/','index.html','manifest.json','icon-192.png','icon-512.png'];
 
 self.addEventListener('install',function(e){

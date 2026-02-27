@@ -142,7 +142,7 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
     <div class="hub-card" style="background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.15)">
       <div class="hub-card-icon">🏃</div>
       <div class="hub-card-title" style="color:var(--neon-green)">Matteo Run</div>
-      <div class="hub-card-desc">Spring ueber Hindernisse und sammle Fanta!</div>
+      <div class="hub-card-desc">Spring ueber Hindernisse und sammle Sterne!</div>
       <button class="btn btn-small btn-game" onclick="startRunner()">Spielen</button>
       <div class="hub-card-status" id="runStatus">Noch nicht geschafft</div>
     </div>
@@ -171,6 +171,11 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
       <div class="hub-card-title" style="color:var(--neon-pink)">Ueberraschung</div>
       <div class="hub-card-desc" id="surDesc">Schliesse alle 3 Challenges ab!</div>
       <button class="btn btn-small btn-primary" id="surBtn" onclick="showReveal()" style="opacity:.35;pointer-events:none">Aufdecken 🔒</button>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;width:100%" id="hintsWrap">
+        <div class="hint-row" id="hint1"><span style="color:#555;font-size:12px">🔒 Hinweis 1: ???</span></div>
+        <div class="hint-row" id="hint2"><span style="color:#555;font-size:12px">🔒 Hinweis 2: ???</span></div>
+        <div class="hint-row" id="hint3"><span style="color:#555;font-size:12px">🔒 Hinweis 3: ???</span></div>
+      </div>
     </div>
   </div>
   <div style="height:30px"></div>
@@ -180,10 +185,11 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 <div class="screen game-screen" id="runnerScreen">
   <div class="game-title" style="color:var(--neon-green)">🏃 MATTEO RUN</div>
   <div class="game-hud">
-    <span style="color:var(--neon-yellow)">🥤 <span id="runScore">0</span></span>
+    <span style="color:var(--neon-yellow)">🌟 <span id="runScore">0</span></span>
     <span style="color:var(--neon-pink)">❤️ <span id="runLives">3</span></span>
-    <span style="color:#888"><span id="runDist">0</span>m</span>
+    <span style="color:#888"><span id="runDist">0</span>/500m</span>
   </div>
+  <div style="width:100%;max-width:420px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin:2px 0"><div id="runProg" style="height:100%;width:0%;background:linear-gradient(90deg,var(--neon-green),var(--neon-blue));border-radius:3px;transition:width .3s"></div></div>
   <div class="game-canvas-wrap"><canvas id="runCanvas" class="game-cv"></canvas></div>
   <div class="game-controls">
     <div class="ctrl-btn" id="rBtnL">◀</div>
@@ -211,8 +217,8 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
   <div class="game-title" style="color:var(--neon-orange)">🔫 NERF JAGD</div>
   <div class="game-hud">
     <span style="color:var(--neon-orange)">🎯<span id="nScore">0</span></span>
-    <span style="color:var(--neon-green)">🔫<span id="nAmmo">25</span></span>
-    <span style="color:var(--neon-blue)">⏱<span id="nTime">30</span>s</span>
+    <span style="color:var(--neon-green)">🔫<span id="nAmmo">30</span></span>
+    <span style="color:var(--neon-blue)">⏱<span id="nTime">40</span>s</span>
   </div>
   <div class="game-canvas-wrap"><canvas id="nerfCanvas" class="game-cv" style="cursor:crosshair"></canvas></div>
   <button class="btn btn-ghost" onclick="nerfGoing=false;goToHub()">Zurueck</button>
@@ -249,30 +255,30 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 
 <!-- REVEAL -->
 <div class="screen screen-scroll" id="reveal">
-  <div style="font-size:50px;animation:reveal-pop .6s ease-out">🏆</div>
-  <div class="reveal-title">Mission Complete! 🎉</div>
-  <p style="color:var(--neon-purple);font-family:'Press Start 2P',cursive;font-size:11px;margin:4px">+9999 Aura</p>
+  <div style="font-size:60px;animation:reveal-pop .6s ease-out">🎉</div>
+  <div class="reveal-title">Mission Complete!</div>
+  <p style="color:var(--neon-purple);font-family:'Press Start 2P',cursive;font-size:12px;margin:6px 0">+9999 Aura</p>
   <div class="voucher">
     <div class="voucher-content">
-      <div class="voucher-label">✨ Experience Ticket ✨</div>
-      <div class="voucher-main-title">Dein VR-Abenteuer wartet!</div>
-      <div class="voucher-text">
+      <div class="voucher-label">✨ Geburtstags-Ticket ✨</div>
+      <div class="voucher-main-title" style="font-size:clamp(20px,5.5vw,28px)">Dein Abenteuer wartet!</div>
+      <div class="voucher-text" style="font-size:16px;color:#ddd;line-height:1.8">
         Lieber Matteo,<br><br>
-        zu deinem <strong>13. Geburtstag</strong> schenken wir dir ein <strong>VR-Gaming-Erlebnis</strong>! 🎮🥽<br><br>
-        Tauche ein in virtuelle Welten und erlebe Abenteuer, die selbst deine Fanta-Dosen-Sammlung neidisch machen! 🥤<br><br>
-        <span style="font-size:12px;color:#666">(Nein, du kannst den Gutschein nicht gegen 847 Oreos eintauschen, Sparfuchs 🦊🍪)</span>
+        zu deinem <strong>13. Geburtstag</strong> haben wir etwas Besonderes fuer dich geplant!<br><br>
+        Was genau? Das bleibt eine Ueberraschung... 😏<br>
+        Aber eins ist sicher: <strong>Es wird episch!</strong>
       </div>
       <div class="voucher-divider"></div>
-      <div class="voucher-detail">
-        <div class="voucher-badge">📍 S Warschauer Str.</div>
-        <div class="voucher-badge">📅 Termin wird abgesprochen</div>
-        <div class="voucher-badge">👥 Linda & Malte am Start</div>
-        <div class="voucher-badge">🥽 VR Gaming</div>
+      <div class="voucher-detail" style="gap:8px">
+        <div class="voucher-badge" style="font-size:14px;padding:8px 16px">📍 Treffpunkt: S-Bahn Warschauer Str.</div>
+        <div class="voucher-badge" style="font-size:14px;padding:8px 16px">👥 Mit dabei: Linda & Malte</div>
+        <div class="voucher-badge" style="font-size:14px;padding:8px 16px">😎 Mitbringen: Gute Laune!</div>
+        <div class="voucher-badge" style="font-size:14px;padding:8px 16px">📅 Termin wird abgesprochen</div>
       </div>
-      <div class="voucher-footer">+∞ Karma ❤️ Deine Familie</div>
+      <div class="voucher-footer" style="font-size:13px;margin-top:16px;color:#888">Deine Familie ❤️</div>
     </div>
   </div>
-  <button class="btn btn-small btn-game" onclick="goToHub()" style="margin:10px 0">Zurueck</button>
+  <button class="btn btn-small btn-game" onclick="goToHub()" style="margin:14px 0">Zurueck</button>
 </div>
 
 <div class="toast toast-y" id="toast1"></div>
@@ -342,7 +348,14 @@ function updHub(){
   var b=document.getElementById("surBtn");
   b.style.opacity=ok?"1":".35";b.style.pointerEvents=ok?"auto":"none";
   b.innerHTML=ok?"Aufdecken 🔓":"Aufdecken 🔒";
-  document.getElementById("surDesc").textContent=ok?"Bereit! +9999 Karma!":"Schliesse alle 3 Challenges ab!";
+  document.getElementById("surDesc").textContent=ok?"Alle Hinweise freigeschaltet!":"Schliesse alle 3 Challenges ab!";
+  // Hints
+  var h1=document.getElementById("hint1");
+  var h2=document.getElementById("hint2");
+  var h3=document.getElementById("hint3");
+  h1.innerHTML=S.runWon?"<span style='color:var(--neon-green);font-size:13px;font-weight:600'>📍 Treffpunkt: S-Bahn Warschauer Str.</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 1: ???</span>";
+  h2.innerHTML=S.nerfWon?"<span style='color:var(--neon-blue);font-size:13px;font-weight:600'>👥 Mit dabei: Linda & Malte</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 2: ???</span>";
+  h3.innerHTML=S.qDone?"<span style='color:var(--neon-yellow);font-size:13px;font-weight:600'>😎 Mitbringen: Gute Laune!</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 3: ???</span>";
 }
 
 function confetti(){var c=["#ff2d95","#00d4ff","#39ff14","#fff700","#bf40ff","#ff6b35"];for(var i=0;i<50;i++){var p=document.createElement("div");p.className="confetti";var z=Math.random()*10+5;p.style.cssText="left:"+Math.random()*100+"vw;width:"+z+"px;height:"+(z*(.6+Math.random()*.5))+"px;background:"+c[Math.floor(Math.random()*c.length)]+";border-radius:"+(Math.random()>.5?"50%":"2px")+";animation-duration:"+(Math.random()*2+2.5)+"s;animation-delay:"+(Math.random()*1.2)+"s";document.body.appendChild(p);setTimeout(function(el){el.remove()},5000,p)}}
@@ -352,18 +365,18 @@ function toast2(t){var e=document.getElementById("toast2");e.textContent=t;e.cla
 
 // ACHIEVEMENTS
 var AD=[
-  {id:"run_fanta",i:"🥤",n:"Fanta-Jaeger",d:"Sammle eine Fanta im Runner",a:100},
+  {id:"run_star",i:"🌟",n:"Sammler",d:"Erstes Item im Runner eingesammelt",a:100},
   {id:"run_win",i:"🏃",n:"Matteo Run Pro",d:"Schliesse den Runner ab",a:200},
   {id:"nerf_first",i:"🎯",n:"Erstschuss",d:"Triff dein erstes Ziel",a:50},
   {id:"nerf_win",i:"🔫",n:"Nerf-Pro",d:"Schliesse Nerf Jagd ab",a:200},
-  {id:"oreo_saver",i:"🍪",n:"Oreo-Retter",d:"Verschone alle Oreos",a:150},
+  {id:"nerf_combo",i:"💥",n:"Combo-King",d:"3er Combo im Nerf-Spiel",a:150},
   {id:"quiz_start",i:"🧠",n:"Quizkopf",d:"Erste Frage richtig",a:50},
   {id:"quiz_win",i:"👑",n:"Quiz Master",d:"Schliesse das Quiz ab",a:200},
   {id:"streak3",i:"🔥",n:"On Fire!",d:"3x Streak",a:100},
   {id:"streak5",i:"💎",n:"Mega-Streak!",d:"5x Streak",a:200},
   {id:"math",i:"🔢",n:"Mathe-Genie",d:"Loes eine Mathe-Aufgabe",a:100},
   {id:"sparfuchs",i:"🦊",n:"Sparfuchs",d:"Beantworte die Spar-Frage",a:100},
-  {id:"fanta_q",i:"🥤",n:"Fanta-Experte",d:"Beantworte die Fanta-Frage",a:100},
+  {id:"speed_boost",i:"⚡",n:"Turbo!",d:"Sammle einen Speed-Boost",a:100},
   {id:"all",i:"🏆",n:"Mission Complete!",d:"Alles freigeschaltet",a:500}
 ];
 function unlock(id){if(S.ach[id])return;S.ach[id]=true;saveState();var d=AD.find(function(a){return a.id===id});if(d){toast("🏆 "+d.i+" "+d.n);addAura(d.a);toast2("+"+d.a+" Aura!")};if(navigator.vibrate)navigator.vibrate([30,30,30])}
@@ -375,7 +388,7 @@ var runGoing=false,rScore=0,rLives=3,rDist=0;
 var rP={x:50,y:0,vy:0,w:24,h:32,grounded:false};
 var rPlatforms=[],rItems=[],rObstacles=[];
 var rFrame=0,rCamX=0,rMoveL=false,rMoveR=false,rJump=false;
-var RW=0,RH=0;
+var RW=0,RH=0,rBoost=0,rParticles=[],rStarsBg=[];
 
 function resizeRC(){
   var w=document.querySelector("#runnerScreen .game-canvas-wrap");
@@ -386,18 +399,17 @@ function resizeRC(){
 }
 
 function genPlatforms(fromX){
-  var y=RH-40;
-  for(var x=fromX;x<fromX+RW*3;x+=Math.random()*80+50){
-    var pw=Math.random()*60+40;
-    y=Math.max(80,Math.min(RH-40,y+(Math.random()-.5)*60));
-    rPlatforms.push({x:x,y:y,w:pw,h:10});
-    // Items on platforms
-    if(Math.random()>.5){
-      var type=Math.random()>.7?"fanta":"oreo";
-      rItems.push({x:x+pw/2-8,y:y-24,w:16,h:16,type:type,collected:false});
+  var y=RH-40;var diff=Math.min(rDist/100,1);
+  for(var x=fromX;x<fromX+RW*3;x+=Math.random()*(60-diff*20)+40){
+    var pw=Math.random()*50+35-diff*10;
+    y=Math.max(70,Math.min(RH-35,y+(Math.random()-.5)*(50+diff*30)));
+    rPlatforms.push({x:x,y:y,w:Math.max(pw,25),h:10});
+    if(Math.random()>.45){
+      var r=Math.random();
+      var type=r>.92?"boost":(r>.7?"star":"cookie");
+      rItems.push({x:x+pw/2-8,y:y-24,w:16,h:16,type:type,collected:false,age:0});
     }
-    // Obstacles
-    if(Math.random()>.75&&x>200){
+    if(Math.random()>.7-diff*.15&&x>200){
       rObstacles.push({x:x+pw/2,y:y-20,w:18,h:18});
     }
   }
@@ -405,10 +417,10 @@ function genPlatforms(fromX){
 
 function startRunner(){
   showScr("runnerScreen");resizeRC();
-  rScore=0;rLives=3;rDist=0;rFrame=0;rCamX=0;
+  rScore=0;rLives=3;rDist=0;rFrame=0;rCamX=0;rBoost=0;rParticles=[];
   rP.x=80;rP.y=RH-80;rP.vy=0;rP.grounded=false;
   rPlatforms=[];rItems=[];rObstacles=[];
-  // Ground
+  rStarsBg=[];for(var i=0;i<30;i++)rStarsBg.push({x:Math.random()*RW,y:Math.random()*RH*.6,s:Math.random()*1.5+.5,sp:Math.random()*.3+.1});
   rPlatforms.push({x:-50,y:RH-20,w:400,h:20});
   genPlatforms(300);
   rMoveL=false;rMoveR=false;rJump=false;
@@ -420,106 +432,118 @@ function updRunHUD(){
   document.getElementById("runScore").textContent=rScore;
   document.getElementById("runLives").textContent=rLives;
   document.getElementById("runDist").textContent=Math.floor(rDist);
+  document.getElementById("runProg").style.width=Math.min(rDist/5,100)+"%";
 }
 
 function drawMatteoSmall(x,y,ctx){
-  // Mini matteo for runner
   var cx=x,cy=y;
-  // Baggy pants
+  if(rBoost>0){ctx.save();ctx.shadowColor="rgba(57,255,20,.6)";ctx.shadowBlur=12}
   ctx.fillStyle="#2a3a6a";ctx.fillRect(cx+4,cy+18,8,14);ctx.fillRect(cx+12,cy+18,8,14);
-  // Shoes
   ctx.fillStyle="#333";ctx.fillRect(cx+2,cy+30,10,4);ctx.fillRect(cx+12,cy+30,10,4);
-  // Hoodie
-  ctx.fillStyle="#1a1a2e";ctx.fillRect(cx+2,cy+8,20,12);
-  // Head
+  ctx.fillStyle=rBoost>0?"#2a2a4e":"#1a1a2e";ctx.fillRect(cx+2,cy+8,20,12);
   ctx.fillStyle="#f5d0a0";ctx.beginPath();ctx.arc(cx+12,cy+4,8,0,Math.PI*2);ctx.fill();
-  // Hair
   ctx.fillStyle="#f0d060";ctx.beginPath();ctx.arc(cx+12,cy+1,8,Math.PI,0);ctx.fill();
   ctx.fillRect(cx+4,cy-3,16,5);
-  // Glasses
   ctx.fillStyle="rgba(0,0,0,.8)";ctx.fillRect(cx+6,cy+2,5,3);ctx.fillRect(cx+13,cy+2,5,3);
+  if(rBoost>0)ctx.restore();
 }
 
 function runLoop(){
   if(!runGoing)return;
-  RX.fillStyle="#0a0a1a";RX.fillRect(0,0,RW,RH);
   rFrame++;
 
-  // Physics
-  var spd=3.5;
+  // Speed increases over distance
+  var baseSpd=5+Math.min(rDist/200,2.5);
+  var spd=rBoost>0?baseSpd*1.6:baseSpd;
   if(rMoveL)rP.x-=spd;
   if(rMoveR)rP.x+=spd;
-  if(rJump&&rP.grounded){rP.vy=-9;rP.grounded=false;rJump=false}
-  rP.vy+=0.45;// gravity
+  // Auto-scroll forward slowly
+  rP.x+=baseSpd*0.3;
+  if(rJump&&rP.grounded){rP.vy=-11;rP.grounded=false;rJump=false;
+    for(var pi=0;pi<5;pi++)rParticles.push({x:rP.x+12,y:rP.y+rP.h,vx:(Math.random()-.5)*2,vy:Math.random()*2+1,life:20,c:"rgba(57,255,20,"})
+  }
+  rP.vy+=0.55;
   rP.y+=rP.vy;
   rP.grounded=false;
+  if(rBoost>0)rBoost--;
 
-  // Camera follows player
   rCamX=rP.x-RW*0.3;
   rDist=Math.max(rDist,rP.x/10);
 
-  // Platform collision
   for(var i=0;i<rPlatforms.length;i++){
     var pl=rPlatforms[i];
-    var px=pl.x-rCamX,py=pl.y;
     if(rP.x+rP.w>pl.x&&rP.x<pl.x+pl.w&&rP.y+rP.h>=pl.y&&rP.y+rP.h<=pl.y+pl.h+rP.vy+2&&rP.vy>=0){
       rP.y=pl.y-rP.h;rP.vy=0;rP.grounded=true;
     }
   }
 
-  // Fall off screen
   if(rP.y>RH+50){
     rLives--;updRunHUD();
     if(rLives<=0){runGoing=false;addAura(-500);document.getElementById("runOverO").classList.add("active");return}
     rP.x=Math.max(rP.x-100,50);rP.y=RH-80;rP.vy=0;
   }
 
-  // Generate more platforms
   var maxPX=0;rPlatforms.forEach(function(p){if(p.x>maxPX)maxPX=p.x});
   if(maxPX<rP.x+RW*2)genPlatforms(maxPX+80);
 
-  // Draw sky gradient
+  // Draw sky gradient with parallax
   var grad=RX.createLinearGradient(0,0,0,RH);
-  grad.addColorStop(0,"#0a0a2a");grad.addColorStop(1,"#1a1a3a");
+  var hue=220+rDist*0.05;
+  grad.addColorStop(0,"hsl("+hue+",40%,8%)");grad.addColorStop(1,"hsl("+(hue+20)+",30%,12%)");
   RX.fillStyle=grad;RX.fillRect(0,0,RW,RH);
+
+  // Parallax stars
+  RX.fillStyle="#fff";
+  for(var si=0;si<rStarsBg.length;si++){
+    var st=rStarsBg[si];
+    var sx=(st.x-rCamX*st.sp)%RW;if(sx<0)sx+=RW;
+    RX.globalAlpha=.3+Math.sin(rFrame*.03+si)*.2;
+    RX.beginPath();RX.arc(sx,st.y,st.s,0,Math.PI*2);RX.fill();
+  }
+  RX.globalAlpha=1;
+
+  // Draw mountains (parallax)
+  RX.fillStyle="rgba(30,30,60,.5)";
+  RX.beginPath();RX.moveTo(0,RH);
+  for(var mx=0;mx<=RW;mx+=3){RX.lineTo(mx,RH-60-Math.sin((mx+rCamX*0.15)*0.015)*25-Math.sin((mx+rCamX*0.15)*0.005)*35)}
+  RX.lineTo(RW,RH);RX.fill();
 
   // Draw platforms
   for(var i=0;i<rPlatforms.length;i++){
-    var pl=rPlatforms[i];
-    var px=pl.x-rCamX;
+    var pl=rPlatforms[i];var px=pl.x-rCamX;
     if(px>RW+50||px+pl.w<-50)continue;
-    RX.fillStyle="#2a4a2a";
-    RX.fillRect(px,pl.y,pl.w,pl.h);
-    // Grass top
-    RX.fillStyle="#4a8a4a";
-    RX.fillRect(px,pl.y,pl.w,3);
+    RX.fillStyle="#2a4a2a";RX.fillRect(px,pl.y,pl.w,pl.h);
+    RX.fillStyle="#4a8a4a";RX.fillRect(px,pl.y,pl.w,3);
+    // Grass tufts
+    RX.fillStyle="#5a9a5a";
+    for(var gi=0;gi<pl.w;gi+=8){RX.fillRect(px+gi,pl.y-2,2,3)}
   }
 
-  // Draw items
+  // Draw & collect items
   for(var i=0;i<rItems.length;i++){
-    var it=rItems[i];
-    if(it.collected)continue;
-    var ix=it.x-rCamX;
-    if(ix>RW+30||ix<-30)continue;
+    var it=rItems[i];if(it.collected)continue;it.age++;
+    var ix=it.x-rCamX;if(ix>RW+30||ix<-30)continue;
+    var bob=Math.sin(it.age*0.08)*3;
     RX.font="14px serif";RX.textAlign="center";RX.textBaseline="middle";
-    RX.fillText(it.type==="fanta"?"🥤":"🍪",ix+8,it.y+8);
-    // Collect
+    if(it.type==="boost"){RX.fillText("⚡",ix+8,it.y+8+bob)}
+    else if(it.type==="star"){RX.fillText("🌟",ix+8,it.y+8+bob)}
+    else{RX.fillText("🍪",ix+8,it.y+8+bob)}
     if(rP.x+rP.w>it.x&&rP.x<it.x+it.w&&rP.y+rP.h>it.y&&rP.y<it.y+it.h){
       it.collected=true;
-      if(it.type==="fanta"){rScore+=2;unlock("run_fanta")}else{rScore++}
-      updRunHUD();
-      if(navigator.vibrate)navigator.vibrate(20);
+      if(it.type==="boost"){rBoost=120;unlock("speed_boost");toast2("⚡ TURBO!")}
+      else if(it.type==="star"){rScore+=2;unlock("run_star")}
+      else{rScore++}
+      for(var pi=0;pi<4;pi++)rParticles.push({x:it.x,y:it.y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:15,c:it.type==="boost"?"rgba(255,247,0,":"rgba(57,255,20,"});
+      updRunHUD();if(navigator.vibrate)navigator.vibrate(20);
     }
   }
 
   // Draw obstacles
   for(var i=0;i<rObstacles.length;i++){
-    var ob=rObstacles[i];
-    var ox=ob.x-rCamX;
+    var ob=rObstacles[i];var ox=ob.x-rCamX;
     if(ox>RW+30||ox<-30)continue;
     RX.font="16px serif";RX.textAlign="center";RX.textBaseline="middle";
     RX.fillText("🪨",ox+9,ob.y+9);
-    // Hit
     if(rP.x+rP.w>ob.x+3&&rP.x<ob.x+ob.w-3&&rP.y+rP.h>ob.y+3&&rP.y<ob.y+ob.h-3){
       rLives--;rObstacles.splice(i,1);i--;updRunHUD();
       if(navigator.vibrate)navigator.vibrate(80);
@@ -527,8 +551,22 @@ function runLoop(){
     }
   }
 
+  // Particles
+  for(var i=rParticles.length-1;i>=0;i--){
+    var p=rParticles[i];p.x+=p.vx;p.y+=p.vy;p.life--;
+    if(p.life<=0){rParticles.splice(i,1);continue}
+    RX.fillStyle=p.c+(p.life/20)+")";
+    RX.fillRect(p.x-rCamX,p.y,3,3);
+  }
+
   // Draw Matteo
   drawMatteoSmall(rP.x-rCamX,rP.y,RX);
+
+  // Boost trail
+  if(rBoost>0&&rFrame%2===0){
+    RX.fillStyle="rgba(57,255,20,"+(rBoost/120*.3)+")";
+    RX.beginPath();RX.arc(rP.x-rCamX+12,rP.y+16,rBoost/120*8+4,0,Math.PI*2);RX.fill();
+  }
 
   // Win at 500m
   if(rDist>=500){
@@ -537,7 +575,6 @@ function runLoop(){
     document.getElementById("runWinO").classList.add("active");confetti();return;
   }
 
-  // Cleanup far away stuff
   rPlatforms=rPlatforms.filter(function(p){return p.x>rCamX-200});
   rItems=rItems.filter(function(it){return it.x>rCamX-200});
   rObstacles=rObstacles.filter(function(o){return o.x>rCamX-200});
@@ -561,8 +598,8 @@ document.addEventListener("keyup",function(e){if(e.key==="ArrowLeft")rMoveL=fals
 
 // ===== NERF / MOORHUHN GAME =====
 var NC=document.getElementById("nerfCanvas"),NX=NC.getContext("2d");
-var nerfGoing=false,nScore=0,nAmmo=25,nTime=30,nTargets=[],nOreoOk=true,nFrame=0,nTimer=null;
-var NW=0,NH=0;
+var nerfGoing=false,nScore=0,nAmmo=30,nTime=40,nTargets=[],nFrame=0,nTimer=null;
+var NW=0,NH=0,nCombo=0,nComboTimer=0,nWave=1,nWavePause=0,nBossHP=0,nExplosions=[],nMaxCombo=0;
 
 function resizeNC(){
   var w=document.querySelector("#nerfScreen .game-canvas-wrap");
@@ -574,114 +611,203 @@ function resizeNC(){
 
 function startNerf(){
   showScr("nerfScreen");resizeNC();
-  nScore=0;nAmmo=25;nTime=30;nTargets=[];nOreoOk=true;nFrame=0;
+  nScore=0;nAmmo=30;nTime=40;nTargets=[];nFrame=0;nCombo=0;nComboTimer=0;nWave=1;nWavePause=0;nBossHP=0;nExplosions=[];nMaxCombo=0;
   updNHUD();nerfGoing=true;
   if(nTimer)clearInterval(nTimer);
-  nTimer=setInterval(function(){if(!nerfGoing)return;nTime--;document.getElementById("nTime").textContent=nTime;if(nTime<=0)endNerf()},1000);
-  // Pre-spawn some targets
-  for(var i=0;i<4;i++)spawnNT();
+  nTimer=setInterval(function(){if(!nerfGoing||nWavePause>0)return;nTime--;document.getElementById("nTime").textContent=nTime;if(nTime<=0)endNerf()},1000);
+  for(var i=0;i<3;i++)spawnNT();
   requestAnimationFrame(nerfLoop);
 }
 
-function updNHUD(){document.getElementById("nScore").textContent=nScore;document.getElementById("nAmmo").textContent=nAmmo;document.getElementById("nTime").textContent=nTime}
+function updNHUD(){
+  document.getElementById("nScore").textContent=nScore;
+  document.getElementById("nAmmo").textContent=nAmmo;
+  document.getElementById("nTime").textContent=nTime;
+}
 
 function spawnNT(){
+  var diff=nWave;
   var r=Math.random();
-  var type=r>.88?"oreo":(r>.6?"fanta":"target");
-  var sz=type==="oreo"?28:26;
-  // Moorhuhn style: fly from sides
+  var type=r>.92?"ammo":(r>.8?"bonus":"target");
+  var sz=26;
   var fromLeft=Math.random()>.5;
+  var spdMult=1+diff*0.3;
   nTargets.push({
-    x:fromLeft?-30:NW+30,y:Math.random()*(NH-80)+20,
+    x:fromLeft?-30:NW+30,y:Math.random()*(NH-100)+20,
     w:sz,h:sz,type:type,
-    vx:(fromLeft?1:-1)*(1.5+Math.random()*2),
-    vy:(Math.random()-.5)*1.5,
-    age:0,alive:true
+    vx:(fromLeft?1:-1)*(2+Math.random()*2)*spdMult,
+    vy:(Math.random()-.5)*2,
+    age:0,alive:true,hp:1
+  });
+}
+
+function spawnBoss(){
+  nBossHP=5;
+  nTargets.push({
+    x:NW/2-20,y:-40,w:44,h:44,type:"boss",
+    vx:(Math.random()-.5)*2,vy:1.5,
+    age:0,alive:true,hp:5
   });
 }
 
 function nerfLoop(){
   if(!nerfGoing)return;
   nFrame++;
-  // Background - sky gradient
+
+  // Wave pause countdown
+  if(nWavePause>0){
+    nWavePause--;
+    NX.fillStyle="rgba(10,10,26,.85)";NX.fillRect(0,0,NW,NH);
+    NX.fillStyle="#fff";NX.font="bold 20px 'Fredoka',sans-serif";NX.textAlign="center";
+    NX.fillText("Welle "+nWave,NW/2,NH/2-20);
+    NX.font="14px 'Fredoka',sans-serif";NX.fillStyle="#888";
+    NX.fillText(nWave===3?"Boss-Runde!":"Mach dich bereit...",NW/2,NH/2+10);
+    requestAnimationFrame(nerfLoop);return;
+  }
+
+  // Combo decay
+  if(nComboTimer>0)nComboTimer--;
+  if(nComboTimer<=0&&nCombo>0)nCombo=0;
+
+  // Background
   var grad=NX.createLinearGradient(0,0,0,NH);
-  grad.addColorStop(0,"#1a2a4a");grad.addColorStop(0.6,"#2a3a5a");grad.addColorStop(1,"#3a5a3a");
+  var hue=210+nWave*15;
+  grad.addColorStop(0,"hsl("+hue+",35%,12%)");grad.addColorStop(0.6,"hsl("+(hue+10)+",30%,16%)");grad.addColorStop(1,"hsl(120,25%,14%)");
   NX.fillStyle=grad;NX.fillRect(0,0,NW,NH);
+
+  // Moon
+  NX.fillStyle="rgba(255,255,200,.08)";NX.beginPath();NX.arc(NW*0.8,50,30,0,Math.PI*2);NX.fill();
+  NX.fillStyle="rgba(255,255,200,.04)";NX.beginPath();NX.arc(NW*0.8,50,45,0,Math.PI*2);NX.fill();
+
   // Ground
   NX.fillStyle="#2a4a2a";NX.fillRect(0,NH-30,NW,30);
   NX.fillStyle="#3a6a3a";NX.fillRect(0,NH-30,NW,4);
   // Hills
-  NX.fillStyle="#1a3a1a";
-  NX.beginPath();NX.moveTo(0,NH-30);
+  NX.fillStyle="#1a3a1a";NX.beginPath();NX.moveTo(0,NH-30);
   for(var hx=0;hx<=NW;hx+=2){NX.lineTo(hx,NH-30-Math.sin(hx*0.02)*15-Math.sin(hx*0.007)*20)}
   NX.lineTo(NW,NH);NX.lineTo(0,NH);NX.fill();
 
-  // Spawn
-  if(nFrame%40===0&&nTargets.length<6)spawnNT();
-  if(nFrame%70===0)spawnNT();
+  // Spawn targets (wave-based)
+  var spawnRate=Math.max(25,45-nWave*8);
+  if(nFrame%spawnRate===0&&nTargets.length<(5+nWave*2))spawnNT();
+
+  // Wave transitions: wave 1 ends at score 8, wave 2 at 18, wave 3 has boss
+  if(nWave===1&&nScore>=8&&nBossHP<=0){nWave=2;nWavePause=90;nTargets=[];nAmmo+=8;updNHUD()}
+  if(nWave===2&&nScore>=18&&nBossHP<=0){nWave=3;nWavePause=90;nTargets=[];nAmmo+=10;updNHUD();setTimeout(spawnBoss,3200)}
 
   // Draw targets
   for(var i=nTargets.length-1;i>=0;i--){
     var t=nTargets[i];
     if(!t.alive){nTargets.splice(i,1);continue}
     t.x+=t.vx;t.y+=t.vy;
-    // Bounce y
+    if(t.type==="boss"){
+      if(t.y>NH*0.15)t.vy=Math.sin(t.age*0.03)*2;
+      if(t.x<40||t.x>NW-40)t.vx*=-1;
+      t.age++;
+      // Draw boss
+      NX.font="40px serif";NX.textAlign="center";NX.textBaseline="middle";
+      NX.fillText("🎪",t.x+t.w/2,t.y+t.h/2);
+      // HP bar
+      NX.fillStyle="rgba(255,0,0,.3)";NX.fillRect(t.x,t.y-12,t.w,6);
+      NX.fillStyle="#ff2d95";NX.fillRect(t.x,t.y-12,t.w*(t.hp/5),6);
+      // Glow
+      NX.save();NX.globalAlpha=.1+Math.sin(t.age*.1)*.05;
+      NX.fillStyle="#ff6b35";NX.beginPath();NX.arc(t.x+t.w/2,t.y+t.h/2,t.w/2+10,0,Math.PI*2);NX.fill();
+      NX.restore();
+      continue;
+    }
     if(t.y<10||t.y>NH-60)t.vy*=-1;
-    // Slight wave
-    t.y+=Math.sin(t.age*0.05)*0.5;
+    t.y+=Math.sin(t.age*0.06)*0.6;
     t.age++;
-    // Remove if off screen
     if(t.x<-60||t.x>NW+60){nTargets.splice(i,1);continue}
-    // Draw
     NX.font=(t.w-2)+"px serif";NX.textAlign="center";NX.textBaseline="middle";
     if(t.type==="target")NX.fillText("🎯",t.x+t.w/2,t.y+t.h/2);
-    else if(t.type==="fanta")NX.fillText("🥤",t.x+t.w/2,t.y+t.h/2);
-    else{
-      NX.fillText("🍪",t.x+t.w/2,t.y+t.h/2);
-      // Warning glow
-      NX.save();NX.globalAlpha=.12+Math.sin(t.age*.15)*.08;
-      NX.fillStyle="var(--neon-pink)";
-      NX.beginPath();NX.arc(t.x+t.w/2,t.y+t.h/2,t.w/2+6,0,Math.PI*2);NX.fill();
+    else if(t.type==="bonus"){
+      NX.fillText("🌟",t.x+t.w/2,t.y+t.h/2);
+      NX.save();NX.globalAlpha=.1+Math.sin(t.age*.12)*.06;
+      NX.fillStyle="#fff700";NX.beginPath();NX.arc(t.x+t.w/2,t.y+t.h/2,t.w/2+5,0,Math.PI*2);NX.fill();
       NX.restore();
-    }
+    }else if(t.type==="ammo"){NX.fillText("📦",t.x+t.w/2,t.y+t.h/2)}
   }
+
+  // Explosions
+  for(var i=nExplosions.length-1;i>=0;i--){
+    var ex=nExplosions[i];ex.life--;
+    if(ex.life<=0){nExplosions.splice(i,1);continue}
+    NX.save();NX.globalAlpha=ex.life/ex.maxLife;
+    NX.strokeStyle=ex.c;NX.lineWidth=2;
+    var rad=(1-ex.life/ex.maxLife)*ex.r;
+    NX.beginPath();NX.arc(ex.x,ex.y,rad,0,Math.PI*2);NX.stroke();
+    // Particles
+    for(var j=0;j<6;j++){
+      var ang=j*Math.PI/3+ex.life*0.1;var pr=rad*0.7;
+      NX.fillStyle=ex.c;NX.fillRect(ex.x+Math.cos(ang)*pr-1,ex.y+Math.sin(ang)*pr-1,3,3);
+    }
+    NX.restore();
+  }
+
+  // Combo display
+  if(nCombo>=2){
+    NX.save();NX.font="bold "+Math.min(16+nCombo*2,28)+"px 'Fredoka',sans-serif";
+    NX.textAlign="center";NX.fillStyle="rgba(255,247,0,"+(0.6+Math.sin(nFrame*.15)*.3)+")";
+    NX.fillText(nCombo+"x COMBO!",NW/2,30);NX.restore();
+  }
+
+  // Wave indicator
+  NX.save();NX.font="10px 'Press Start 2P',monospace";NX.textAlign="right";
+  NX.fillStyle="rgba(255,255,255,.3)";NX.fillText("WELLE "+nWave+"/3",NW-8,NH-8);NX.restore();
 
   requestAnimationFrame(nerfLoop);
 }
 
 function nerfShoot(cx,cy){
-  if(!nerfGoing||nAmmo<=0)return;
+  if(!nerfGoing||nAmmo<=0||nWavePause>0)return;
   nAmmo--;updNHUD();
   if(navigator.vibrate)navigator.vibrate(15);
-  // Hit flash
   NX.fillStyle="rgba(255,255,255,.08)";NX.fillRect(0,0,NW,NH);
+  // Muzzle flash
+  NX.save();NX.globalAlpha=.25;NX.fillStyle="#fff";
+  NX.beginPath();NX.arc(cx,cy,8,0,Math.PI*2);NX.fill();NX.restore();
+
   var hit=false;
   for(var i=nTargets.length-1;i>=0;i--){
     var t=nTargets[i];
     var dx=cx-(t.x+t.w/2),dy=cy-(t.y+t.h/2);
-    if(Math.sqrt(dx*dx+dy*dy)<t.w*0.7){
-      if(t.type==="oreo"){
-        nOreoOk=false;nScore=Math.max(0,nScore-2);
-        toast2("-100 Karma! Nicht die Oreos! 🍪");addAura(-100);
-      }else if(t.type==="fanta"){
-        nScore+=3;toast2("+200 Aura! Fanta! 🥤");addAura(200);
+    var hitR=t.type==="boss"?t.w*0.5:t.w*0.7;
+    if(Math.sqrt(dx*dx+dy*dy)<hitR){
+      if(t.type==="boss"){
+        t.hp--;
+        nExplosions.push({x:cx,y:cy,life:12,maxLife:12,r:20,c:"#ff6b35"});
+        if(t.hp<=0){t.alive=false;nScore+=5;nBossHP=0;addAura(500);toast2("BOSS besiegt! +500 Aura!")}
+        else{toast2("Boss HP: "+t.hp+"/5")}
+      }else if(t.type==="ammo"){
+        nAmmo+=5;toast2("+5 Munition! 📦");
+      }else if(t.type==="bonus"){
+        var pts=2*(nCombo>=2?nCombo:1);nScore+=pts;
+        addAura(pts*30);toast2("+"+pts+" Punkte! 🌟");
       }else{
-        nScore++;if(!S.ach.nerf_first)unlock("nerf_first");
+        var pts=nCombo>=2?nCombo:1;nScore+=pts;
+        if(!S.ach.nerf_first)unlock("nerf_first");
       }
-      t.alive=false;updNHUD();hit=true;break;
+      if(t.type!=="boss")t.alive=false;
+      nCombo++;nComboTimer=90;
+      if(nCombo>=3)unlock("nerf_combo");
+      if(nCombo>nMaxCombo)nMaxCombo=nCombo;
+      nExplosions.push({x:t.x+t.w/2,y:t.y+t.h/2,life:15,maxLife:15,r:t.w,c:t.type==="bonus"?"#fff700":"#00d4ff"});
+      updNHUD();hit=true;break;
     }
   }
+  if(!hit){nCombo=0;nComboTimer=0}
   if(nAmmo<=0)setTimeout(endNerf,500);
 }
 
 function endNerf(){
   nerfGoing=false;if(nTimer){clearInterval(nTimer);nTimer=null}
-  var won=nScore>=10;
+  var won=nScore>=15;
   if(won){S.nerfWon=true;saveState();unlock("nerf_win");addAura(300)}
-  if(nOreoOk&&won)unlock("oreo_saver");
   document.getElementById("nEndE").textContent=won?"🎉":"😤";
-  document.getElementById("nEndT").textContent=won?"+300 Aura! Nerf-Pro!":"Brauchst 10 Punkte! Du hattest "+nScore;
-  document.getElementById("nEndS").textContent=won?(nOreoOk?"Alle Oreos verschont! +150 Karma 🍪":"Oreos getroffen... -500 Karma"):"Nochmal versuchen!";
+  document.getElementById("nEndT").textContent=won?"+300 Aura! Nerf-Pro!":"Brauchst 15 Punkte! Du hattest "+nScore;
+  document.getElementById("nEndS").textContent=won?"Max Combo: "+nMaxCombo+"x":"Nochmal versuchen!";
   document.getElementById("nerfEndO").classList.add("active");
   if(won)confetti();
 }
@@ -694,18 +820,18 @@ var QS=[
   {cat:"MATHE 🔢",q:"Was ist 7 x 13?",a:["91","87","84","97"],c:0,aid:"math"},
   {cat:"MATHE 🔢",q:"Was ist 2 hoch 8?",a:["256","128","512","64"],c:0,aid:"math"},
   {cat:"MATHE 🔢",q:"Was ist die Wurzel aus 144?",a:["12","14","11","13"],c:0,aid:"math"},
-  {cat:"MATHE 🔢",q:"Matteo hat 847 EUR gespart. Fanta kostet 0,85 EUR. Wie viele kann er kaufen?",a:["996","847","1000","900"],c:0,aid:"math"},
+  {cat:"MATHE 🔢",q:"Matteo hat 847 EUR gespart. Ein Snack kostet 1,30 EUR. Wie viele kann er kaufen?",a:["651","847","700","500"],c:0,aid:"math"},
   {cat:"MATHE 🔢",q:"3 Oreos am Tag - wie viele im Jahr?",a:["1095","1065","1100","365"],c:0,aid:"math"},
   {cat:"MATHE 🔢",q:"Ruderboot: 12 km/h. Wie weit in 2,5 Stunden?",a:["30 km","25 km","24 km","28 km"],c:0,aid:"math"},
   {cat:"WISSEN 🌍",q:"Hauptstadt von Australien?",a:["Canberra","Sydney","Melbourne","Brisbane"],c:0},
   {cat:"WISSEN 🌍",q:"Groesster Planet im Sonnensystem?",a:["Jupiter","Saturn","Neptun","Uranus"],c:0},
   {cat:"WISSEN 🌍",q:"Wann fiel die Berliner Mauer?",a:["1989","1991","1987","1990"],c:0},
   {cat:"WISSEN 🌍",q:"Wie viele Bundeslaender hat Deutschland?",a:["16","15","17","14"],c:0},
-  {cat:"MATTEO 😎",q:"Matteo sammelt leidenschaftlich...",a:["Fanta-Dosen 🥤","Pokemon-Karten","Sneaker","NFTs"],c:0,aid:"fanta_q"},
   {cat:"MATTEO 😎",q:"Welcher Sport haelt Matteo fit?",a:["Rudern 🚣","Fussball","Basketball","Schwimmen"],c:0},
   {cat:"MATTEO 😎",q:"Matteo ist ein richtiger...",a:["Sparfuchs 🦊","Partyloewe","Faultier","Technik-Nerd"],c:0,aid:"sparfuchs"},
   {cat:"MATTEO 😎",q:"Was sagt Matteo wenn was Peinliches passiert?",a:["-500 Aura","Cringe","Bruh","No cap"],c:0},
-  {cat:"MATTEO 😎",q:"Wie viele Fanta-Dosen passen in ein Ruderboot (400L)?",a:["Ca. 1200","Ca. 400","Ca. 800","Ca. 2000"],c:0}
+  {cat:"MATTEO 😎",q:"Wie viel Aura hat ein echter Sigma?",a:["Unendlich","9999","0","42"],c:0},
+  {cat:"WISSEN 🌍",q:"Wie viele Knochen hat ein erwachsener Mensch?",a:["206","186","214","196"],c:0}
 ];
 
 var qOrder=[];
