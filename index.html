@@ -143,7 +143,7 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 <!-- HUB -->
 <div class="screen screen-scroll" id="hub">
   <canvas id="avatarHub" width="180" height="252" style="width:90px;height:126px"></canvas>
-  <div class="hub-title">Matteo Challenge</div>
+  <div class="hub-title" id="hubTitle">Matteo Challenge</div>
   <div style="color:#555;font-size:11px">Schliesse alle Challenges ab!</div>
   <div class="hub-aura" id="auraDisp">Aura: 1000</div>
   <div class="hub-grid">
@@ -295,6 +295,8 @@ function saveState(){try{localStorage.setItem("matteo13",JSON.stringify(S))}catc
 function loadState(){try{var d=localStorage.getItem("matteo13");if(d){var p=JSON.parse(d);for(var k in p)S[k]=p[k]}}catch(e){}}
 function resetState(){localStorage.removeItem("matteo13");S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{},hiFlappy:0,hiMemMoves:0,hiMemTime:0};saveState()}
 if(location.search.indexOf("reset")>-1){resetState();history.replaceState(null,"",location.pathname)}else{loadState()}
+var _rtaps=0,_rtimer=null;
+document.getElementById("hubTitle").addEventListener("click",function(){_rtaps++;if(_rtaps===1)_rtimer=setTimeout(function(){_rtaps=0},2500);if(_rtaps>=5){_rtaps=0;clearTimeout(_rtimer);if(confirm("Alles zuruecksetzen?")){resetState();location.reload()}}})
 
 // SOUND EFFECTS (Web Audio API - no external files)
 var audioCtx=null;
