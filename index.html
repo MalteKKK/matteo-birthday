@@ -289,124 +289,216 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 var S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{}};
 function saveState(){try{localStorage.setItem("matteo13",JSON.stringify(S))}catch(e){}}
 function loadState(){try{var d=localStorage.getItem("matteo13");if(d){var p=JSON.parse(d);for(var k in p)S[k]=p[k]}}catch(e){}}
-loadState();
+function resetState(){localStorage.removeItem("matteo13");S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{}};saveState()}
+if(location.search.indexOf("reset")>-1){resetState();history.replaceState(null,"",location.pathname)}else{loadState()}
 
 // STARS
 (function(){var e=document.getElementById("stars");for(var i=0;i<70;i++){var s=document.createElement("div");s.className="star";var z=(Math.random()*2.5+1)+"px";s.style.cssText="left:"+Math.random()*100+"%;top:"+Math.random()*100+"%;width:"+z+";height:"+z+";animation-delay:"+Math.random()*3+"s";e.appendChild(s)}})();
 
 // AVATAR - High quality character drawing
-function roundRect(x,cx,cy,w,h,r){x.beginPath();x.moveTo(cx+r,cy);x.lineTo(cx+w-r,cy);x.quadraticCurveTo(cx+w,cy,cx+w,cy+r);x.lineTo(cx+w,cy+h-r);x.quadraticCurveTo(cx+w,cy+h,cx+w-r,cy+h);x.lineTo(cx+r,cy+h);x.quadraticCurveTo(cx,cy+h,cx,cy+h-r);x.lineTo(cx,cy+r);x.quadraticCurveTo(cx,cy,cx+r,cy);x.closePath();x.fill()}
+function rr(x,cx,cy,w,h,r){x.beginPath();x.roundRect(cx,cy,w,h,r);x.fill()}
+function rrS(x,cx,cy,w,h,r){x.beginPath();x.roundRect(cx,cy,w,h,r);x.stroke()}
 
 function drawPerson(x,opts){
-  // opts: {scale, headY, bodyY, armL, armR, legSpread, hairColor, hairLong, skinTone, shirtColor, pantsColor, glasses, smile}
   var o=opts||{};
   x.save();
   x.lineCap="round";x.lineJoin="round";
-  var sc=o.scale||1;
-  x.scale(sc,sc);
+  x.scale(o.scale||1,o.scale||1);
 
-  var skin=o.skinTone||"#f5d0a0";
-  var hair=o.hairColor||"#f0d060";
-  var hairDk=o.hairDark||"#e0c040";
-  var shirt=o.shirtColor||"#1a1a2e";
-  var pants=o.pantsColor||"#2a3a6a";
-  var hy=o.headY||0;var by=o.bodyY||0;
-  var al=o.armL||0;var ar=o.armR||0;
-  var ls=o.legSpread||0;
+  var skin=o.skinTone||"#f5d0a0",skinSh=o.skinShadow||"#e0b888";
+  var hair=o.hairColor||"#f0d060",hairDk=o.hairDark||"#e0c040",hairLt=o.hairLight||"#f8e080";
+  var shirt=o.shirtColor||"#1a1a2e",shirtLt=o.shirtLight||"rgba(255,255,255,.06)";
+  var pants=o.pantsColor||"#2a3a6a",pantsLt="rgba(255,255,255,.04)";
+  var hy=o.headY||0,by=o.bodyY||0;
+  var al=o.armL||0,ar=o.armR||0,ls=o.legSpread||0;
 
-  // Shadow
-  x.fillStyle="rgba(0,0,0,.12)";
-  x.beginPath();x.ellipse(68,178+by,30+ls*2,6,0,0,Math.PI*2);x.fill();
+  // Ground shadow (soft ellipse)
+  var sg=x.createRadialGradient(68,178+by,2,68,178+by,34+Math.abs(ls)*2);
+  sg.addColorStop(0,"rgba(0,0,0,.18)");sg.addColorStop(1,"rgba(0,0,0,0)");
+  x.fillStyle=sg;x.fillRect(30,168+by,76,20);
 
-  // Legs/pants
+  // === LEGS ===
   x.fillStyle=pants;
-  roundRect(x,46-ls,118+by,20,52,5);roundRect(x,70+ls,118+by,20,52,5);
-  roundRect(x,42,112+by,52,14,4);
+  rr(x,46-ls,118+by,20,52,6);rr(x,70+ls,118+by,20,52,6);
+  // Belt area
+  rr(x,42,112+by,52,14,5);
+  // Pants highlight
+  x.fillStyle=pantsLt;
+  rr(x,48-ls,120+by,6,40,3);rr(x,72+ls,120+by,6,40,3);
+  // Pants crease
+  x.strokeStyle="rgba(0,0,0,.08)";x.lineWidth=1;
+  x.beginPath();x.moveTo(56-ls,125+by);x.lineTo(56-ls,168+by);x.stroke();
+  x.beginPath();x.moveTo(80+ls,125+by);x.lineTo(80+ls,168+by);x.stroke();
 
-  // Shoes
-  x.fillStyle="#333";
-  roundRect(x,42-ls,166+by,26,12,5);roundRect(x,68+ls,166+by,26,12,5);
+  // === SHOES ===
+  x.fillStyle="#2a2a2a";
+  rr(x,41-ls,166+by,27,13,6);rr(x,68+ls,166+by,27,13,6);
+  // Shoe sole
+  x.fillStyle="#1a1a1a";
+  rr(x,41-ls,175+by,27,4,2);rr(x,68+ls,175+by,27,4,2);
+  // Shoe highlight
+  x.fillStyle="rgba(255,255,255,.08)";
+  rr(x,44-ls,167+by,18,4,2);rr(x,71+ls,167+by,18,4,2);
 
-  // Body
+  // === BODY / HOODIE ===
   x.fillStyle=shirt;
-  roundRect(x,38,68+by,60,48,8);
-  // Hood detail
-  x.fillStyle="rgba(255,255,255,.04)";roundRect(x,52,70+by,32,10,4);
+  rr(x,36,66+by,64,50,10);
+  // Hoodie pocket
+  x.fillStyle="rgba(0,0,0,.06)";
+  rr(x,50,96+by,36,14,5);
+  // Hoodie center line
+  x.strokeStyle="rgba(255,255,255,.04)";x.lineWidth=1;
+  x.beginPath();x.moveTo(68,70+by);x.lineTo(68,114+by);x.stroke();
+  // Hood neckline
+  x.fillStyle=shirtLt;
+  x.beginPath();x.ellipse(68,68+by,18,6,0,0,Math.PI);x.fill();
+  // Shirt highlight (left side light)
+  x.fillStyle="rgba(255,255,255,.03)";
+  rr(x,38,68+by,20,44,8);
 
-  // Arms
-  x.save();
-  x.fillStyle=shirt;
+  // === ARMS ===
   // Left arm
   x.save();x.translate(38,76+by);x.rotate(al);
-  roundRect(x,-8,-4,16,42,6);x.restore();
+  x.fillStyle=shirt;rr(x,-9,-5,18,44,7);
+  x.fillStyle=shirtLt;rr(x,-6,-3,6,36,4);
+  x.restore();
   // Right arm
   x.save();x.translate(98,76+by);x.rotate(ar);
-  roundRect(x,-8,-4,16,42,6);x.restore();
+  x.fillStyle=shirt;rr(x,-9,-5,18,44,7);
+  x.fillStyle=shirtLt;rr(x,-6,-3,6,36,4);
   x.restore();
 
-  // Hands (skin)
+  // Hands
   x.fillStyle=skin;
-  var lhx=30+Math.sin(al)*38,lhy=112+by+Math.cos(al)*4;
-  var rhx=106+Math.sin(ar)*38,rhy=112+by+Math.cos(ar)*4;
-  x.beginPath();x.arc(lhx,lhy,6,0,Math.PI*2);x.fill();
-  x.beginPath();x.arc(rhx,rhy,6,0,Math.PI*2);x.fill();
+  var lhx=30+Math.sin(al)*40,lhy=114+by+Math.cos(al)*4;
+  var rhx=106+Math.sin(ar)*40,rhy=114+by+Math.cos(ar)*4;
+  x.beginPath();x.arc(lhx,lhy,7,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(rhx,rhy,7,0,Math.PI*2);x.fill();
+  // Hand shadow
+  x.fillStyle=skinSh;
+  x.beginPath();x.arc(lhx+1,lhy+2,5,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(rhx+1,rhy+2,5,0,Math.PI*2);x.fill();
 
-  // Head
+  // === HEAD ===
+  // Neck
+  x.fillStyle=skinSh;rr(x,60,60+hy,16,14,4);
+  // Head shape
   x.fillStyle=skin;
-  x.beginPath();x.arc(68,45+hy,26,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(68,44+hy,27,0,Math.PI*2);x.fill();
+  // Face shadow (subtle)
+  var fs=x.createRadialGradient(68,50+hy,8,68,50+hy,28);
+  fs.addColorStop(0,"rgba(0,0,0,0)");fs.addColorStop(1,"rgba(0,0,0,.04)");
+  x.fillStyle=fs;x.beginPath();x.arc(68,44+hy,27,0,Math.PI*2);x.fill();
   // Ears
-  x.beginPath();x.arc(42,48+hy,6,0,Math.PI*2);x.fill();
-  x.beginPath();x.arc(94,48+hy,6,0,Math.PI*2);x.fill();
+  x.fillStyle=skin;
+  x.beginPath();x.arc(41,47+hy,7,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(95,47+hy,7,0,Math.PI*2);x.fill();
+  // Ear inner
+  x.fillStyle=skinSh;
+  x.beginPath();x.arc(41,47+hy,4,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(95,47+hy,4,0,Math.PI*2);x.fill();
 
-  // Hair
+  // === HAIR ===
   x.fillStyle=hair;
-  x.beginPath();x.arc(68,38+hy,27,Math.PI,0);x.fill();
-  roundRect(x,42,28+hy,52,14,4);
-  // Hair strands
+  x.beginPath();x.arc(68,36+hy,29,Math.PI,0);x.fill();
+  rr(x,40,24+hy,56,16,6);
+  // Hair volume top
+  x.fillStyle=hairLt;
+  x.beginPath();x.arc(68,32+hy,22,Math.PI*1.1,Math.PI*1.9);x.fill();
+  // Hair strands with more detail
   x.fillStyle=hairDk;
-  roundRect(x,44,22+hy,10,14,3);roundRect(x,56,20+hy,12,12,3);
-  roundRect(x,70,19+hy,12,13,3);roundRect(x,82,22+hy,10,14,3);
+  rr(x,42,20+hy,11,16,4);rr(x,55,18+hy,13,14,4);
+  rr(x,70,17+hy,13,15,4);rr(x,84,20+hy,11,16,4);
+  // Hair highlight
+  x.fillStyle=hairLt;
+  rr(x,52,19+hy,6,8,3);rr(x,72,18+hy,6,8,3);
 
-  // Long hair for Linda
+  // Long hair (Linda)
   if(o.hairLong){
     x.fillStyle=hair;
-    roundRect(x,38,38+hy,10,50,4);roundRect(x,88,38+hy,10,50,4);
-    // Wavy
+    // Left flowing hair
+    x.beginPath();x.moveTo(42,36+hy);x.quadraticCurveTo(34,60+hy,36,90+hy);
+    x.lineTo(48,90+hy);x.quadraticCurveTo(46,60+hy,48,36+hy);x.fill();
+    // Right flowing hair
+    x.beginPath();x.moveTo(94,36+hy);x.quadraticCurveTo(102,60+hy,100,90+hy);
+    x.lineTo(88,90+hy);x.quadraticCurveTo(90,60+hy,88,36+hy);x.fill();
+    // Wavy highlights
+    x.fillStyle=hairLt;
+    x.beginPath();x.moveTo(44,45+hy);x.quadraticCurveTo(38,65+hy,40,80+hy);
+    x.lineTo(44,78+hy);x.quadraticCurveTo(42,63+hy,46,45+hy);x.fill();
+    x.beginPath();x.moveTo(92,45+hy);x.quadraticCurveTo(98,65+hy,96,80+hy);
+    x.lineTo(92,78+hy);x.quadraticCurveTo(94,63+hy,90,45+hy);x.fill();
+    // Dark wave accents
     x.fillStyle=hairDk;
-    roundRect(x,36,55+hy,8,28,3);roundRect(x,92,55+hy,8,28,3);
+    rr(x,36,58+hy,6,20,3);rr(x,94,58+hy,6,20,3);
   }
 
-  // Eyes or Glasses
+  // === FACE ===
   if(o.glasses){
-    x.fillStyle="rgba(20,20,40,0.8)";
-    roundRect(x,50,41+hy,14,10,3);roundRect(x,72,41+hy,14,10,3);
-    x.strokeStyle="#333";x.lineWidth=1.5;
-    x.beginPath();x.moveTo(64,46+hy);x.lineTo(72,46+hy);x.stroke();
-    // Lens shine
-    x.fillStyle="rgba(255,255,255,.15)";
-    x.fillRect(52,42+hy,4,3);x.fillRect(74,42+hy,4,3);
+    // Frame
+    x.strokeStyle="#2a2a3a";x.lineWidth=2;
+    rrS(x,49,40+hy,15,11,4);rrS(x,72,40+hy,15,11,4);
+    // Bridge
+    x.beginPath();x.moveTo(64,45+hy);x.lineTo(72,45+hy);x.stroke();
+    // Temple arms
+    x.beginPath();x.moveTo(49,44+hy);x.lineTo(42,43+hy);x.stroke();
+    x.beginPath();x.moveTo(87,44+hy);x.lineTo(94,43+hy);x.stroke();
+    // Lenses (dark tint)
+    x.fillStyle="rgba(15,15,35,0.7)";
+    rr(x,50,41+hy,13,9,3);rr(x,73,41+hy,13,9,3);
+    // Lens reflections
+    x.fillStyle="rgba(255,255,255,.2)";
+    rr(x,51,41.5+hy,5,3,1.5);rr(x,74,41.5+hy,5,3,1.5);
+    // Bottom rim light
+    x.fillStyle="rgba(255,255,255,.06)";
+    rr(x,50,47+hy,13,2,1);rr(x,73,47+hy,13,2,1);
   }else{
-    // Normal eyes
-    x.fillStyle="#333";
-    x.beginPath();x.arc(57,46+hy,3,0,Math.PI*2);x.fill();
-    x.beginPath();x.arc(79,46+hy,3,0,Math.PI*2);x.fill();
-    // Pupils
-    x.fillStyle="#111";
-    x.beginPath();x.arc(57,46+hy,1.5,0,Math.PI*2);x.fill();
-    x.beginPath();x.arc(79,46+hy,1.5,0,Math.PI*2);x.fill();
     // Eye whites
-    x.fillStyle="rgba(255,255,255,.6)";
-    x.beginPath();x.arc(55.5,44.5+hy,1,0,Math.PI*2);x.fill();
-    x.beginPath();x.arc(77.5,44.5+hy,1,0,Math.PI*2);x.fill();
+    x.fillStyle="#f8f8f8";
+    x.beginPath();x.ellipse(57,45+hy,5,4,0,0,Math.PI*2);x.fill();
+    x.beginPath();x.ellipse(79,45+hy,5,4,0,0,Math.PI*2);x.fill();
+    // Iris
+    x.fillStyle="#5a3a1a";
+    x.beginPath();x.arc(57,45.5+hy,3,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(79,45.5+hy,3,0,Math.PI*2);x.fill();
+    // Pupil
+    x.fillStyle="#1a1a1a";
+    x.beginPath();x.arc(57,45.5+hy,1.5,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(79,45.5+hy,1.5,0,Math.PI*2);x.fill();
+    // Eye sparkle
+    x.fillStyle="rgba(255,255,255,.8)";
+    x.beginPath();x.arc(55.5,44+hy,1.2,0,Math.PI*2);x.fill();
+    x.beginPath();x.arc(77.5,44+hy,1.2,0,Math.PI*2);x.fill();
+    // Eyelashes (subtle)
+    x.strokeStyle="rgba(0,0,0,.2)";x.lineWidth=1;
+    x.beginPath();x.arc(57,45+hy,5.5,Math.PI*1.15,Math.PI*1.85);x.stroke();
+    x.beginPath();x.arc(79,45+hy,5.5,Math.PI*1.15,Math.PI*1.85);x.stroke();
+    // Eyebrows
+    x.strokeStyle="rgba(60,40,20,.4)";x.lineWidth=1.5;
+    x.beginPath();x.arc(57,40+hy,7,Math.PI*1.2,Math.PI*1.8);x.stroke();
+    x.beginPath();x.arc(79,40+hy,7,Math.PI*1.2,Math.PI*1.8);x.stroke();
   }
 
-  // Smile
-  x.strokeStyle="#c08060";x.lineWidth=2;
-  x.beginPath();x.arc(68,52+hy,o.smile||8,0.15*Math.PI,0.85*Math.PI);x.stroke();
+  // Nose (subtle)
+  x.fillStyle="rgba(0,0,0,.03)";
+  x.beginPath();x.arc(68,50+hy,3,0,Math.PI*2);x.fill();
+  x.fillStyle=skinSh;
+  x.beginPath();x.arc(68,51+hy,2,0,Math.PI);x.fill();
+
+  // Mouth / Smile
+  x.strokeStyle="#c08060";x.lineWidth=2.5;
+  x.beginPath();x.arc(68,53+hy,o.smile||8,0.1*Math.PI,0.9*Math.PI);x.stroke();
+  // Teeth hint
+  x.fillStyle="rgba(255,255,255,.5)";
+  rr(x,62,53+hy,12,3,1.5);
+
   // Blush
-  x.fillStyle="rgba(255,150,150,.15)";
-  x.beginPath();x.arc(50,54+hy,6,0,Math.PI*2);x.fill();
-  x.beginPath();x.arc(86,54+hy,6,0,Math.PI*2);x.fill();
+  var bl=x.createRadialGradient(50,55+hy,0,50,55+hy,7);
+  bl.addColorStop(0,"rgba(255,130,130,.18)");bl.addColorStop(1,"rgba(255,130,130,0)");
+  x.fillStyle=bl;x.fillRect(43,48+hy,14,14);
+  var br=x.createRadialGradient(86,55+hy,0,86,55+hy,7);
+  br.addColorStop(0,"rgba(255,130,130,.18)");br.addColorStop(1,"rgba(255,130,130,0)");
+  x.fillStyle=br;x.fillRect(79,48+hy,14,14);
 
   x.restore();
 }
@@ -468,10 +560,10 @@ function danceLoop(){
   var armSwing=Math.sin(t*4)*0.5;
   var legSwing=Math.sin(t*4)*3;
 
-  // Malte (left, taller) - blonde, glasses
+  // Malte (left, taller) - blonde, no glasses
   DX.save();DX.translate(80,20);DX.scale(1.15,1.15);
   drawPerson(DX,{
-    scale:1,glasses:true,
+    scale:1,glasses:false,
     hairColor:"#f0d060",hairDark:"#dbb830",
     shirtColor:"#2a2a4e",pantsColor:"#2a3a5a",
     headY:bounce*0.8,bodyY:bounce*0.5,
