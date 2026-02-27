@@ -145,6 +145,7 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
       <div class="hub-card-desc">Spring ueber Hindernisse und sammle Sterne!</div>
       <button class="btn btn-small btn-game" onclick="startRunner()">Spielen</button>
       <div class="hub-card-status" id="runStatus">Noch nicht geschafft</div>
+      <div style="font-size:10px;color:var(--neon-blue);margin-top:3px" id="runHi"></div>
     </div>
     <div class="hub-card" style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.15)">
       <div class="hub-card-icon">🔫</div>
@@ -152,6 +153,7 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
       <div class="hub-card-desc">Moorhuhn-Style! Schiess die Ziele ab!</div>
       <button class="btn btn-small btn-orange" onclick="startNerf()">Spielen</button>
       <div class="hub-card-status" id="nerfStatus">Noch nicht geschafft</div>
+      <div style="font-size:10px;color:var(--neon-blue);margin-top:3px" id="nerfHi"></div>
     </div>
     <div class="hub-card" style="background:rgba(191,64,255,.05);border:1px solid rgba(191,64,255,.15)">
       <div class="hub-card-icon">🧠</div>
@@ -286,11 +288,37 @@ canvas.game-cv{border:2px solid rgba(255,255,255,.2);border-radius:14px;touch-ac
 
 <script>
 // STATE
-var S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{}};
+var S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{},hiRunDist:0,hiRunScore:0,hiNerfScore:0,hiNerfCombo:0};
 function saveState(){try{localStorage.setItem("matteo13",JSON.stringify(S))}catch(e){}}
 function loadState(){try{var d=localStorage.getItem("matteo13");if(d){var p=JSON.parse(d);for(var k in p)S[k]=p[k]}}catch(e){}}
-function resetState(){localStorage.removeItem("matteo13");S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{}};saveState()}
+function resetState(){localStorage.removeItem("matteo13");S={aura:1000,runWon:false,nerfWon:false,qCorrect:0,qCur:0,qDone:false,qStreak:0,ach:{},hiRunDist:0,hiRunScore:0,hiNerfScore:0,hiNerfCombo:0};saveState()}
 if(location.search.indexOf("reset")>-1){resetState();history.replaceState(null,"",location.pathname)}else{loadState()}
+
+// SOUND EFFECTS (Web Audio API - no external files)
+var audioCtx=null;
+function getAudioCtx(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return audioCtx}
+function playTone(freq,dur,type,vol,ramp){
+  var ctx=getAudioCtx();if(!ctx)return;
+  var osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type=type||"square";osc.frequency.setValueAtTime(freq,ctx.currentTime);
+  if(ramp)osc.frequency.exponentialRampToValueAtTime(ramp,ctx.currentTime+dur);
+  gain.gain.setValueAtTime(vol||0.08,ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.start();osc.stop(ctx.currentTime+dur);
+}
+function sfxJump(){playTone(260,0.15,"square",0.06,520)}
+function sfxCollect(){playTone(660,0.1,"square",0.06);setTimeout(function(){playTone(880,0.12,"square",0.06)},60)}
+function sfxHit(){playTone(180,0.2,"sawtooth",0.07,80)}
+function sfxShoot(){playTone(800,0.08,"square",0.05,200)}
+function sfxNerfHit(){playTone(520,0.1,"square",0.06);setTimeout(function(){playTone(780,0.1,"square",0.06)},50)}
+function sfxAchieve(){playTone(523,0.12,"sine",0.07);setTimeout(function(){playTone(659,0.12,"sine",0.07)},100);setTimeout(function(){playTone(784,0.15,"sine",0.07)},200);setTimeout(function(){playTone(1047,0.25,"sine",0.08)},300)}
+function sfxConfetti(){playTone(440,0.08,"sine",0.04);setTimeout(function(){playTone(554,0.08,"sine",0.04)},50);setTimeout(function(){playTone(659,0.08,"sine",0.04)},100);setTimeout(function(){playTone(880,0.15,"sine",0.05)},150)}
+function sfxWrong(){playTone(300,0.15,"sawtooth",0.06,150)}
+function sfxCombo(){playTone(600,0.08,"sine",0.06);setTimeout(function(){playTone(900,0.12,"sine",0.07)},60)}
+// Unlock AudioContext on first user interaction (required by mobile browsers)
+document.addEventListener("click",function(){var ctx=getAudioCtx();if(ctx&&ctx.state==="suspended")ctx.resume()},{once:true});
+document.addEventListener("touchstart",function(){var ctx=getAudioCtx();if(ctx&&ctx.state==="suspended")ctx.resume()},{once:true});
 
 // STARS
 (function(){var e=document.getElementById("stars");for(var i=0;i<70;i++){var s=document.createElement("div");s.className="star";var z=(Math.random()*2.5+1)+"px";s.style.cssText="left:"+Math.random()*100+"%;top:"+Math.random()*100+"%;width:"+z+";height:"+z+";animation-delay:"+Math.random()*3+"s";e.appendChild(s)}})();
@@ -625,7 +653,9 @@ function addAura(n){S.aura+=n;saveState();var e=document.createElement("div");e.
 function updHub(){
   document.getElementById("auraDisp").textContent="Aura: "+S.aura;
   document.getElementById("runStatus").textContent=S.runWon?"✅ Geschafft!":"Noch nicht geschafft";
+  document.getElementById("runHi").textContent=S.hiRunDist>0?"Rekord: "+S.hiRunDist+"m | "+S.hiRunScore+" 🌟":"";
   document.getElementById("nerfStatus").textContent=S.nerfWon?"✅ Geschafft!":"Noch nicht geschafft";
+  document.getElementById("nerfHi").textContent=S.hiNerfScore>0?"Rekord: "+S.hiNerfScore+" Pkt | "+S.hiNerfCombo+"x Combo":"";
   document.getElementById("quizStatus").textContent=(S.qDone?"✅ ":"")+S.qCorrect+"/10 richtig";
   document.getElementById("achDesc").textContent=Object.keys(S.ach).length+"/13 freigeschaltet";
   var ok=S.runWon&&S.nerfWon&&S.qDone;
@@ -640,9 +670,11 @@ function updHub(){
   h1.innerHTML=S.runWon?"<span style='color:var(--neon-green);font-size:13px;font-weight:600'>📍 Treffpunkt: S-Bahn Warschauer Str.</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 1: ???</span>";
   h2.innerHTML=S.nerfWon?"<span style='color:var(--neon-blue);font-size:13px;font-weight:600'>👥 Mit dabei: Linda & Malte</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 2: ???</span>";
   h3.innerHTML=S.qDone?"<span style='color:var(--neon-yellow);font-size:13px;font-weight:600'>😎 Mitbringen: Gute Laune!</span>":"<span style='color:#555;font-size:12px'>🔒 Hinweis 3: ???</span>";
+  // Confetti rain when all 3 hints unlocked
+  if(ok&&!updHub._celebrated){updHub._celebrated=true;confetti();setTimeout(confetti,800);setTimeout(confetti,1600);toast("🎉 Alle Hinweise freigeschaltet!")}
 }
 
-function confetti(){var c=["#ff2d95","#00d4ff","#39ff14","#fff700","#bf40ff","#ff6b35"];for(var i=0;i<50;i++){var p=document.createElement("div");p.className="confetti";var z=Math.random()*10+5;p.style.cssText="left:"+Math.random()*100+"vw;width:"+z+"px;height:"+(z*(.6+Math.random()*.5))+"px;background:"+c[Math.floor(Math.random()*c.length)]+";border-radius:"+(Math.random()>.5?"50%":"2px")+";animation-duration:"+(Math.random()*2+2.5)+"s;animation-delay:"+(Math.random()*1.2)+"s";document.body.appendChild(p);setTimeout(function(el){el.remove()},5000,p)}}
+function confetti(){sfxConfetti();var c=["#ff2d95","#00d4ff","#39ff14","#fff700","#bf40ff","#ff6b35"];for(var i=0;i<50;i++){var p=document.createElement("div");p.className="confetti";var z=Math.random()*10+5;p.style.cssText="left:"+Math.random()*100+"vw;width:"+z+"px;height:"+(z*(.6+Math.random()*.5))+"px;background:"+c[Math.floor(Math.random()*c.length)]+";border-radius:"+(Math.random()>.5?"50%":"2px")+";animation-duration:"+(Math.random()*2+2.5)+"s;animation-delay:"+(Math.random()*1.2)+"s";document.body.appendChild(p);setTimeout(function(el){el.remove()},5000,p)}}
 
 function toast(t){var e=document.getElementById("toast1");e.textContent=t;e.classList.add("show");setTimeout(function(){e.classList.remove("show")},3500)}
 function toast2(t){var e=document.getElementById("toast2");e.textContent=t;e.classList.add("show");setTimeout(function(){e.classList.remove("show")},2500)}
@@ -663,7 +695,7 @@ var AD=[
   {id:"speed_boost",i:"⚡",n:"Turbo!",d:"Sammle einen Speed-Boost",a:100},
   {id:"all",i:"🏆",n:"Mission Complete!",d:"Alles freigeschaltet",a:500}
 ];
-function unlock(id){if(S.ach[id])return;S.ach[id]=true;saveState();var d=AD.find(function(a){return a.id===id});if(d){toast("🏆 "+d.i+" "+d.n);addAura(d.a);toast2("+"+d.a+" Aura!")};if(navigator.vibrate)navigator.vibrate([30,30,30])}
+function unlock(id){if(S.ach[id])return;S.ach[id]=true;saveState();var d=AD.find(function(a){return a.id===id});if(d){toast("🏆 "+d.i+" "+d.n);addAura(d.a);toast2("+"+d.a+" Aura!");sfxAchieve()};if(navigator.vibrate)navigator.vibrate([30,30,30])}
 function renAch(){var g=document.getElementById("achGrid");g.innerHTML="";AD.forEach(function(a){var u=!!S.ach[a.id];var c=document.createElement("div");c.className="achieve-card "+(u?"unlocked":"locked");c.innerHTML="<div class=achieve-icon>"+(u?a.i:"🔒")+"</div><div class=achieve-info><div class=achieve-name>"+(u?a.n:"???")+"</div><div class=achieve-desc>"+a.d+"</div>"+(u?"<div style=\"font-size:11px;color:var(--neon-purple);font-weight:600\">+"+a.a+" Aura</div>":"")+"</div>";g.appendChild(c)})}
 
 // ===== RUNNER GAME (Mario style) =====
@@ -718,6 +750,12 @@ function updRunHUD(){
   document.getElementById("runDist").textContent=Math.floor(rDist);
   document.getElementById("runProg").style.width=Math.min(rDist/5,100)+"%";
 }
+function updRunHighscore(){
+  var changed=false;
+  if(Math.floor(rDist)>S.hiRunDist){S.hiRunDist=Math.floor(rDist);changed=true}
+  if(rScore>S.hiRunScore){S.hiRunScore=rScore;changed=true}
+  if(changed)saveState();
+}
 
 function drawMatteoSmall(x,y,ctx){
   var cx=x,cy=y;
@@ -758,7 +796,7 @@ function runLoop(){
   if(rMoveR)rP.x+=spd;
   // Auto-scroll forward slowly
   rP.x+=baseSpd*0.3;
-  if(rJump&&rP.grounded){rP.vy=-11;rP.grounded=false;rJump=false;
+  if(rJump&&rP.grounded){rP.vy=-11;rP.grounded=false;rJump=false;sfxJump();
     for(var pi=0;pi<5;pi++)rParticles.push({x:rP.x+12,y:rP.y+rP.h,vx:(Math.random()-.5)*2,vy:Math.random()*2+1,life:20,c:"rgba(57,255,20,"})
   }
   rP.vy+=0.55;
@@ -777,8 +815,8 @@ function runLoop(){
   }
 
   if(rP.y>RH+50){
-    rLives--;updRunHUD();
-    if(rLives<=0){runGoing=false;addAura(-500);document.getElementById("runOverO").classList.add("active");return}
+    rLives--;updRunHUD();sfxHit();
+    if(rLives<=0){runGoing=false;addAura(-500);updRunHighscore();document.getElementById("runOverO").classList.add("active");return}
     rP.x=Math.max(rP.x-100,50);rP.y=RH-80;rP.vy=0;
   }
 
@@ -829,9 +867,9 @@ function runLoop(){
     else{RX.fillText("🍪",ix+8,it.y+8+bob)}
     if(rP.x+rP.w>it.x&&rP.x<it.x+it.w&&rP.y+rP.h>it.y&&rP.y<it.y+it.h){
       it.collected=true;
-      if(it.type==="boost"){rBoost=120;unlock("speed_boost");toast2("⚡ TURBO!")}
-      else if(it.type==="star"){rScore+=2;unlock("run_star")}
-      else{rScore++}
+      if(it.type==="boost"){rBoost=120;unlock("speed_boost");toast2("⚡ TURBO!");sfxCollect()}
+      else if(it.type==="star"){rScore+=2;unlock("run_star");sfxCollect()}
+      else{rScore++;sfxCollect()}
       for(var pi=0;pi<4;pi++)rParticles.push({x:it.x,y:it.y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:15,c:it.type==="boost"?"rgba(255,247,0,":"rgba(57,255,20,"});
       updRunHUD();if(navigator.vibrate)navigator.vibrate(20);
     }
@@ -844,7 +882,7 @@ function runLoop(){
     RX.font="16px serif";RX.textAlign="center";RX.textBaseline="middle";
     RX.fillText("🪨",ox+9,ob.y+9);
     if(rP.x+rP.w>ob.x+3&&rP.x<ob.x+ob.w-3&&rP.y+rP.h>ob.y+3&&rP.y<ob.y+ob.h-3){
-      rLives--;rObstacles.splice(i,1);i--;updRunHUD();
+      rLives--;rObstacles.splice(i,1);i--;updRunHUD();sfxHit();
       if(navigator.vibrate)navigator.vibrate(80);
       if(rLives<=0){runGoing=false;addAura(-500);document.getElementById("runOverO").classList.add("active");return}
     }
@@ -869,7 +907,7 @@ function runLoop(){
 
   // Win at 500m
   if(rDist>=500){
-    runGoing=false;S.runWon=true;saveState();unlock("run_win");addAura(500);
+    runGoing=false;S.runWon=true;saveState();unlock("run_win");addAura(500);updRunHighscore();
     if(navigator.vibrate)navigator.vibrate([50,50,50]);
     document.getElementById("runWinO").classList.add("active");confetti();return;
   }
@@ -1061,7 +1099,7 @@ function nerfLoop(){
 
 function nerfShoot(cx,cy){
   if(!nerfGoing||nAmmo<=0||nWavePause>0)return;
-  nAmmo--;updNHUD();
+  nAmmo--;updNHUD();sfxShoot();
   if(navigator.vibrate)navigator.vibrate(15);
   NX.fillStyle="rgba(255,255,255,.08)";NX.fillRect(0,0,NW,NH);
   // Muzzle flash
@@ -1089,8 +1127,8 @@ function nerfShoot(cx,cy){
         if(!S.ach.nerf_first)unlock("nerf_first");
       }
       if(t.type!=="boss")t.alive=false;
-      nCombo++;nComboTimer=90;
-      if(nCombo>=3)unlock("nerf_combo");
+      nCombo++;nComboTimer=90;sfxNerfHit();
+      if(nCombo>=3){unlock("nerf_combo");sfxCombo()}
       if(nCombo>nMaxCombo)nMaxCombo=nCombo;
       nExplosions.push({x:t.x+t.w/2,y:t.y+t.h/2,life:15,maxLife:15,r:t.w,c:t.type==="bonus"?"#fff700":"#00d4ff"});
       updNHUD();hit=true;break;
@@ -1104,6 +1142,11 @@ function endNerf(){
   nerfGoing=false;if(nTimer){clearInterval(nTimer);nTimer=null}
   var won=nScore>=15;
   if(won){S.nerfWon=true;saveState();unlock("nerf_win");addAura(300)}
+  // Update highscores
+  var hiChanged=false;
+  if(nScore>S.hiNerfScore){S.hiNerfScore=nScore;hiChanged=true}
+  if(nMaxCombo>S.hiNerfCombo){S.hiNerfCombo=nMaxCombo;hiChanged=true}
+  if(hiChanged)saveState();
   document.getElementById("nEndE").textContent=won?"🎉":"😤";
   document.getElementById("nEndT").textContent=won?"+300 Aura! Nerf-Pro!":"Brauchst 15 Punkte! Du hattest "+nScore;
   document.getElementById("nEndS").textContent=won?"Max Combo: "+nMaxCombo+"x":"Nochmal versuchen!";
@@ -1169,11 +1212,11 @@ function ansQ(ch,qi){
     if(S.qStreak>=3)unlock("streak3");if(S.qStreak>=5)unlock("streak5");
     unlock("quiz_start");if(q.aid)unlock(q.aid);
     fb.textContent=["+100 Aura! 🎯","Richtig! +100 Karma 💪","Korrekt! 🧠"][Math.floor(Math.random()*3)];
-    fb.className="quiz-feedback ok";addAura(100);
+    fb.className="quiz-feedback ok";addAura(100);sfxCollect();
     if(navigator.vibrate)navigator.vibrate(30);
   }else{
     S.qStreak=0;fb.textContent="-50 Aura... Antwort ist markiert!";
-    fb.className="quiz-feedback bad";addAura(-50);
+    fb.className="quiz-feedback bad";addAura(-50);sfxWrong();
     if(navigator.vibrate)navigator.vibrate([50,30,50]);
   }
   document.getElementById("qStrk").textContent=S.qStreak>0?"🔥 "+S.qStreak+"x Streak":"";
